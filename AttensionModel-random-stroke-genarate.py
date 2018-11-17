@@ -12,7 +12,6 @@ from keras.utils import to_categorical
 from keras.models import load_model, Model
 import keras.backend as K
 import numpy as np
-import tkinter
 #import tensorflow as tf
 from keras.callbacks import ModelCheckpoint
 
@@ -22,7 +21,6 @@ import random
 #from babel.dates import format_date
 #from at_nmt_utils import *
 import matplotlib.pyplot as plt
-#get_ipython().run_line_magic('matplotlib', 'inline')
 
 
 # In[6]:
@@ -41,7 +39,7 @@ sys.path.insert(0,'..')
 # In[7]:
 
 
-strokes = np.load('../data/strokes.npy',encoding='bytes')
+strokes = np.load('strokes.npy',encoding='bytes')
 
 
 # In[8]:
@@ -227,7 +225,7 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[31]:
 
 
-filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+filepath="weights.{epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
@@ -235,7 +233,7 @@ callbacks_list = [checkpoint]
 # In[32]:
 
 
-model.fit([Xoh, s0, c0], outputs, epochs=10, batch_size=30,callbacks=callbacks_list)
+model.fit([Xoh, s0, c0], outputs, validation_split=0.33, epochs=20, batch_size=30,callbacks=callbacks_list)
 
 
 # In[ ]:
