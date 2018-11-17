@@ -171,8 +171,8 @@ callbacks_list = [checkpoint]
 # In[15]:
 
 
-model.fit([Xoh, a0, c0], outputs, monitor='val_loss', epochs = 20, batch_size = 30,callbacks=callbacks_list)
-
+#model.fit([Xoh, a0, c0], outputs, monitor='val_loss', epochs = 20, batch_size = 30,callbacks=callbacks_list)
+model.fit([Xoh, a0, c0], outputs, validation_split=0.33,monitor='val_loss', epochs=20, batch_size=30,callbacks=callbacks_list)
 
 # In[19]:
 
