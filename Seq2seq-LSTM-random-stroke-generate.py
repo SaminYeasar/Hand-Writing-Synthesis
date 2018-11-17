@@ -110,7 +110,7 @@ densor = Dense(n_y)
 def stroke_learn_model(Tx, n_a, n_x):
     # Define the input of your model with a shape 
     X = Input(shape=(Tx, n_x))
-    # Define s0, initial hidden state for the decoder LSTM
+    # Define a0, initial hidden state for the decoder LSTM
     a0 = Input(shape=(n_a,), name='a0')
     c0 = Input(shape=(n_a,), name='c0')
     a = a0
@@ -180,7 +180,7 @@ model.fit([Xoh, a0, c0], outputs, monitor='val_loss', epochs = 20, batch_size = 
 def stroke_inference_model(LSTM_cell, densor, n_x, n_a=50 , Ty=300 ):
     # Define the input of your model with a shape 
     x0 = Input(shape=(1, n_x))
-    # Define s0, initial hidden state for the decoder LSTM
+    # Define a0, initial hidden state for the decoder LSTM
     a0 = Input(shape=(n_a,), name='a0')
     c0 = Input(shape=(n_a,), name='c0')
     a = a0
