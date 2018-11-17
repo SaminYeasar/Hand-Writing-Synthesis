@@ -13,6 +13,7 @@ from keras.utils import to_categorical
 from keras.models import load_model, Model
 import keras.backend as K
 import numpy as np
+from keras.callbacks import ModelCheckpoint
 
 #from faker import Faker
 import random
