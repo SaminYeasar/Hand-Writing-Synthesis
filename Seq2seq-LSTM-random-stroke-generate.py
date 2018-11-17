@@ -163,7 +163,7 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[5]:
 
 
-filepath="seq2seq-LSTM-50.weights.{epoch:02d}-{val_loss:.2f}.hdf5"
+filepath="seq2seq-LSTM-50-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
