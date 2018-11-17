@@ -232,13 +232,13 @@ np.savetxt("seq2seq_gen_strokes.csv", result, delimiter=",")
 # In[20]:
 
 
-'''
-def predict_and_sample(inference_model, x_initializer = x_initializer, a_initializer = a_initializer, 
-                       c_initializer = c_initializer):
-    pred = inference_model.predict([x_initializer, a_initializer, c_initializer])
-    indices = np.argmax(np.array(pred),axis=2)
-    results = to_categorical(indices,num_classes=None)
-    return results, indices
-results, indices = predict_and_sample(inference_model, x_initializer, a_initializer, c_initializer)
-''''''
+
+#def predict_and_sample(inference_model, x_initializer = x_initializer, a_initializer = a_initializer, 
+#                       c_initializer = c_initializer):
+#    pred = inference_model.predict([x_initializer, a_initializer, c_initializer])
+#    indices = np.argmax(np.array(pred),axis=2)
+#    results = to_categorical(indices,num_classes=None)
+#    return results, indices
+#results, indices = predict_and_sample(inference_model, x_initializer, a_initializer, c_initializer)
+
 
