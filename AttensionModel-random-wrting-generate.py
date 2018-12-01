@@ -102,7 +102,7 @@ num_char = len(char2idx)
 
 
 ########## gives the best representation so far
-stroke_len = 500
+stroke_len = 300
 char_len = stroke_len/25
 
 
@@ -212,8 +212,8 @@ def one_step_attention(a, s_prev,C):
 # In[16]:
 
 
-n_a = 150  #bi-directional in total ends up having 300 variables
-n_s = 300
+n_a = 128  #bi-directional in total ends up having 300 variables
+n_s = 256
 output_dim = 3
 n_mix = 10
 input_feat_size = Xoh.shape[2]   #3
@@ -325,13 +325,13 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[ ]:
 
 
-BATCH_SIZE = 100
-EPOCHS = 100
+BATCH_SIZE = 10
+EPOCHS = 32
 history = model.fit([Xoh,C, s0, c0], outputs, batch_size=BATCH_SIZE, epochs=EPOCHS, callbacks=[keras.callbacks.TerminateOnNaN()])
 
 
 # In[ ]:
 
 
-model.save('Attention_mdn_batch100_epoch100.h5')  # creates a HDF5 file 'my_model.h5'
+model.save('Attention_mdn_batch10_epoch32.h5')  # creates a HDF5 file 'my_model.h5'
 
