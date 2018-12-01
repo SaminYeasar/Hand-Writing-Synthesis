@@ -103,7 +103,7 @@ num_char = len(char2idx)
 
 ########## gives the best representation so far
 stroke_len = 300
-char_len = stroke_len/25
+char_len =int(stroke_len/25)
 
 
 # In[11]:
@@ -232,16 +232,6 @@ mix_model = mdn.MDN(output_dim, n_mix)
 #output_layer = Dense(3, activation = "sigmoid")
 
 
-# In[17]:
-
-
-X = Input(shape=(Tx, input_feat_size))
-C = Input(shape=(char_len, num_char))
-s0 = Input(shape=(n_s,), name='s0')
-c0 = Input(shape=(n_s,), name='c0')
-s = s0
-c = c0
-
 
 # In[18]:
 
@@ -332,8 +322,8 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[ ]:
 
 
-BATCH_SIZE = 10
-EPOCHS = 32
+BATCH_SIZE = 32
+EPOCHS = 10
 history = model.fit([Xoh,C, s0, c0], outputs, batch_size=BATCH_SIZE, epochs=EPOCHS, callbacks=[keras.callbacks.TerminateOnNaN()])
 
 
