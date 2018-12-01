@@ -45,14 +45,14 @@ from keras.utils import to_categorical
 from keras.models import load_model, Model
 import keras.backend as K
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from faker import Faker
-import random
-from tqdm import tqdm
-from babel.dates import format_date
-from at_nmt_utils import *
+#from keras.preprocessing.text import Tokenizer
+#from faker import Faker
+#import random
+#from tqdm import tqdm
+#from babel.dates import format_date
+#from at_nmt_utils import *
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 
 # In[6]:
@@ -107,7 +107,14 @@ char_len = stroke_len/25
 
 
 # In[11]:
-
+def softmax(x, axis=1):
+    ndim = K.ndim(x)
+    if ndim == 2:
+        return K.softmax(x)
+    elif ndim > 2:
+        e = K.exp(x - K.max(x, axis=axis, keepdims=True))
+        s = K.sum(e, axis=axis, keepdims=True)
+        return e / s
 
 def check_char (char2idx,val):
     result = []
