@@ -6,6 +6,7 @@
 
 import tensorflow as tf
 import keras
+import mdn
 from keras.layers import Bidirectional, Concatenate, Permute, Dot, Input, LSTM, Multiply
 from keras.layers import RepeatVector, Dense, Activation, Lambda , Reshape
 from keras.optimizers import Adam
@@ -90,19 +91,21 @@ Yoh = new_strokes[:,1:Ty+1,:]       # output_strokes
 # In[8]:
 
 
-n_a = 50
+n_a = 256
 n_x = n_y = 3
 
 
 # In[9]:
 
-
+output_dim = 3 
+n_mix = 10
 #reshapor = Reshape((1, 78))                        
 reshapor = Reshape((1, n_y))
 LSTM_cell = LSTM(n_a, return_state = True)      
 #densor = Dense(n_y, activation='softmax')    
-densor = Dense(n_y)
+#densor = Dense(n_y)
 
+mix_model = mdn.MDN(output_dim, n_mix)
 
 # In[10]:
 
@@ -124,7 +127,8 @@ def stroke_learn_model(Tx, n_a, n_x):
         # one step of the LSTM_cell
         a, _, c = LSTM_cell(x,initial_state=[a,c])
         # densor to the hidden state output of LSTM_Cell
-        out = densor(a)
+        out = mix_model(a)
+	#out = mix_model(a)
         outputs.append(out)
     # Create model instance
     model = Model(inputs=[X,a0,c0], outputs=outputs)
@@ -140,10 +144,10 @@ model = stroke_learn_model(Tx = Tx , n_a = n_a, n_x = n_x)
 # In[12]:
 
 
-opt = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, decay=0.01)
+#opt = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, decay=0.01)
+#model.compile(optimizer=opt, loss='mean_squared_error', metrics=['accuracy'])
 
-model.compile(optimizer=opt, loss='mean_squared_error', metrics=['accuracy'])
-
+model.compile(loss=mdn.get_mixture_loss_func(output_dim,n_mix), optimizer=keras.optimizers.Adam())
 
 # In[13]:
 
@@ -163,7 +167,7 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[5]:
 
 
-filepath="seq2seq-LSTM-50-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
+filepath="seq2seq-MDN-300timlen-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
@@ -172,11 +176,12 @@ callbacks_list = [checkpoint]
 
 
 #model.fit([Xoh, a0, c0], outputs, monitor='val_loss', epochs = 20, batch_size = 30,callbacks=callbacks_list)
-model.fit([Xoh, a0, c0], outputs, validation_split=0.33, epochs=20, batch_size=30,callbacks=callbacks_list)
+model.fit([Xoh, a0, c0], outputs, validation_split=0.33, epochs=10, batch_size=32,callbacks=callbacks_list)
 
+model.save('seq2seq_mdn_model.h5')
 # In[19]:
 
-
+"""
 def stroke_inference_model(LSTM_cell, densor, n_x, n_a=50 , Ty=300 ):
     # Define the input of your model with a shape 
     x0 = Input(shape=(1, n_x))
@@ -241,5 +246,5 @@ np.savetxt("seq2seq_gen_strokes.csv", result, delimiter=",")
 #    results = to_categorical(indices,num_classes=None)
 #    return results, indices
 #results, indices = predict_and_sample(inference_model, x_initializer, a_initializer, c_initializer)
-
+"""
 
