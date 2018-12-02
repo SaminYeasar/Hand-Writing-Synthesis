@@ -5,7 +5,6 @@
 
 
 import keras
-import mdn
 from keras.layers import Bidirectional, Concatenate, Permute, Dot, Input, LSTM, Multiply
 from keras.layers import RepeatVector, Dense, Activation, Lambda ,Dropout,BatchNormalization
 from keras.optimizers import Adam
