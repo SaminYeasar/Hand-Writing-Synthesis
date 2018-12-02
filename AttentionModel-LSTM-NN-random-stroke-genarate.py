@@ -187,8 +187,8 @@ model.compile(optimizer=opt,
 # In[ ]:
 
 
-s0 = np.zeros((m, n_s))
-c0 = np.zeros((m, n_s))
+s0 = np.zeros((input_feat_size, n_s))
+c0 = np.zeros((input_feat_size, n_s))
 outputs = list(Yoh.swapaxes(0,1))
 
 
