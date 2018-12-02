@@ -55,19 +55,19 @@ m = len(strokes)
 
 
 def pad_stroke(stroke,Ty):
-    _npads = Ty - stroke.shape[0] 
-    padded_stroke = np.vstack ([ stroke,np.zeros((_npads,3)) ])
-    #padded_strokes.shape
-    return padded_stroke
+	npads = Ty - stroke.shape[0]
+	padded_stroke = np.vstack ([ stroke,np.zeros((_npads,3)) ])
+	#padded_strokes.shape
+	return padded_stroke
 
 def tranc_stroke(stroke, Ty):
-    #input_stroke = []
-    #output_stroke = []
-    if stroke.shape[0] >= Ty:
-        stroke = stroke[:Ty,]
-    elif stroke.shape[0] < Ty:
-        stroke = pad_stroke(stroke,Ty)
-    return stroke
+	#input_stroke = []
+	#output_stroke = []
+	if stroke.shape[0] >= Ty:
+		stroke = stroke[:Ty,]
+	elif stroke.shape[0] < Ty:
+		stroke = pad_stroke(stroke,Ty)
+	return stroke
 
 new_strokes = np.array(list(map(lambda x: tranc_stroke(x, Ty+1), strokes)))
 
@@ -101,7 +101,7 @@ output_dim = 3
 n_mix = 10
 #reshapor = Reshape((1, 78))                        
 reshapor = Reshape((1, n_y))
-LSTM_cell = LSTM(n_a, return_state = True)      
+LSTM_cell = LSTM(n_a,recurrent_dropout=0.2,return_state = True)      
 #densor = Dense(n_y, activation='softmax')    
 #densor = Dense(n_y)
 
@@ -111,32 +111,31 @@ mix_model = mdn.MDN(output_dim, n_mix)
 
 
 def stroke_learn_model(Tx, n_a, n_x):
-    # Define the input of your model with a shape 
-    X = Input(shape=(Tx, n_x))
-    # Define a0, initial hidden state for the decoder LSTM
-    a0 = Input(shape=(n_a,), name='a0')
-    c0 = Input(shape=(n_a,), name='c0')
-    a = a0
-    c = c0
-    outputs = []
-    for t in range(Tx):
-        # select the "t"th time step vector from X. 
-        x = Lambda(lambda x: X[:,t,:])(X)
-        # reshape x to be (1, n_values) 
-        x = reshapor(x)
-        # one step of the LSTM_cell
-        a, _, c = LSTM_cell(x,initial_state=[a,c])
-        # densor to the hidden state output of LSTM_Cell
-        out = mix_model(a)
+	# Define the input of your model with a shape
+	X = Input(shape=(Tx, n_x))
+	# Define a0, initial hidden state for the decoder LSTM
+	a0 = Input(shape=(n_a,), name='a0')
+	c0 = Input(shape=(n_a,), name='c0')
+	a = a0
+	c = c0
+	outputs = []
+	for t in range(Tx):
+		# select the "t"th time step vector from X.
+		x = Lambda(lambda x: X[:,t,:])(X)
+		# reshape x to be (1, n_values)
+		x = reshapor(x)
+		# one step of the LSTM_cell
+		a, _, c = LSTM_cell(x,initial_state=[a,c])
+		# densor to the hidden state output of LSTM_Cell
+		out = mix_model(a)
 	#out = mix_model(a)
-        outputs.append(out)
-    # Create model instance
-    model = Model(inputs=[X,a0,c0], outputs=outputs)
-    return model
+		outputs.append(out)
+	# Create model instance
+	model = Model(inputs=[X,a0,c0], outputs=outputs)
+	return model
 
 
 # In[11]:
-
 
 model = stroke_learn_model(Tx = Tx , n_a = n_a, n_x = n_x)
 
@@ -144,10 +143,10 @@ model = stroke_learn_model(Tx = Tx , n_a = n_a, n_x = n_x)
 # In[12]:
 
 
-#opt = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, decay=0.01)
+opt = Adam(clipvalue=100)
 #model.compile(optimizer=opt, loss='mean_squared_error', metrics=['accuracy'])
 
-model.compile(loss=mdn.get_mixture_loss_func(output_dim,n_mix), optimizer=keras.optimizers.Adam())
+model.compile(loss=mdn.get_mixture_loss_func(output_dim,n_mix), optimizer=opt)
 
 # In[13]:
 
@@ -176,36 +175,36 @@ callbacks_list = [checkpoint]
 
 
 #model.fit([Xoh, a0, c0], outputs, monitor='val_loss', epochs = 20, batch_size = 30,callbacks=callbacks_list)
-model.fit([Xoh, a0, c0], outputs, validation_split=0.33, epochs=10, batch_size=32,callbacks=callbacks_list)
+model.fit([Xoh, a0, c0], outputs, validation_split=0.33, epochs=100, batch_size=32,callbacks=callbacks_list)
 
 model.save('seq2seq_mdn_model.h5')
 # In[19]:
 
 """
 def stroke_inference_model(LSTM_cell, densor, n_x, n_a=50 , Ty=300 ):
-    # Define the input of your model with a shape 
-    x0 = Input(shape=(1, n_x))
-    # Define a0, initial hidden state for the decoder LSTM
-    a0 = Input(shape=(n_a,), name='a0')
-    c0 = Input(shape=(n_a,), name='c0')
-    a = a0
-    c = c0
-    x = x0
-    outputs = []
-    for t in range(Ty):
-        #Perform one step of LSTM_cell (≈1 line)
-        a, _, c = LSTM_cell(x,initial_state=[a,c])
-        #print(a)
-        # Dense layer to the hidden state output of the LSTM_cell 
-        out = densor(a)
-        #print(out)
-        outputs.append(out)
-        #x = Lambda(one_hot)(out)
-        x = RepeatVector(1)(out)
-        #print(x)
-    # Create model instance with the correct "inputs" and "outputs" 
-    inference_model = Model(inputs=[x0,a0,c0], outputs=outputs)
-    return inference_model
+	# Define the input of your model with a shape 
+	x0 = Input(shape=(1, n_x))
+	# Define a0, initial hidden state for the decoder LSTM
+	a0 = Input(shape=(n_a,), name='a0')
+	c0 = Input(shape=(n_a,), name='c0')
+	a = a0
+	c = c0
+	x = x0
+	outputs = []
+	for t in range(Ty):
+		#Perform one step of LSTM_cell (≈1 line)
+		a, _, c = LSTM_cell(x,initial_state=[a,c])
+		#print(a)
+		# Dense layer to the hidden state output of the LSTM_cell 
+		out = densor(a)
+		#print(out)
+		outputs.append(out)
+		#x = Lambda(one_hot)(out)
+		x = RepeatVector(1)(out)
+		#print(x)
+	# Create model instance with the correct "inputs" and "outputs" 
+	inference_model = Model(inputs=[x0,a0,c0], outputs=outputs)
+	return inference_model
 
 
 # In[20]:
