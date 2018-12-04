@@ -60,9 +60,10 @@ sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 #!pip install tensorflow_probability
 
 
-# In[31]:
+# In[1]:
 
 
+import os
 import tensorflow as tf
 import keras
 #import mdn
@@ -227,7 +228,7 @@ activator = Activation(softmax, name='attention_weights') # We are using a custo
 dotor = Dot(axes = 1)
 
 
-# In[16]:
+# In[12]:
 
 
 def one_step_attention(a, s_prev,C):
@@ -243,7 +244,7 @@ def one_step_attention(a, s_prev,C):
     return context
 
 
-# In[17]:
+# In[13]:
 
 
 n_a = 128  #bi-directional in total ends up having 300 variables
@@ -264,7 +265,7 @@ out_densor2 = Dense(100, kernel_initializer='random_uniform' , activation = "tan
 out_densor3 = Dense(3, kernel_initializer='random_uniform' , activation = "tanh")
 
 
-# In[18]:
+# In[14]:
 
 
 def model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size, char_len, num_char):
@@ -296,7 +297,7 @@ def model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size, char_len, num_cha
     return model
 
 
-# In[21]:
+# In[15]:
 
 
 
@@ -322,7 +323,7 @@ model.summary()
 #model.compile(loss=mdn.get_mixture_loss_func(output_dim, n_mix), optimizer=keras.optimizers.Adam())
 
 
-# In[28]:
+# In[16]:
 
 
 opt = Adam(lr=0.005, decay=0.01, beta_1=0.9, beta_2=0.999,clipvalue=100)
@@ -331,7 +332,7 @@ model.compile(optimizer=opt,
               metrics=['accuracy'])
 
 
-# In[29]:
+# In[17]:
 
 
 m = Xoh.shape[0]  # no of examples we have for training
@@ -343,17 +344,43 @@ outputs = list(Yoh.swapaxes(0,1))
 # In[32]:
 
 
-filepath="AttentionModel-NN-writing-gen-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
-checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
-callbacks_list = [checkpoint]
+#filepath="AttentionModel-NN-writing-gen-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
+#checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
+#callbacks_list = [checkpoint]
 
 
 # In[ ]:
 
 
-model.fit([Xoh,C, s0, c0], outputs, validation_split=0.33, epochs=20, batch_size=32,callbacks=callbacks_list)
-print('training completed')
-model.save('AttentionModel-NN-writing-gen-weights_batch32_epoch20.h5')  # creates a HDF5 file 'my_model.h5'
+#model.fit([Xoh,C, s0, c0], outputs, validation_split=0.33, epochs=20, batch_size=32,callbacks=callbacks_list)
+#print('training completed')
+#model.save('AttentionModel-NN-writing-gen-weights_batch32_epoch20.h5')  # creates a HDF5 file 'my_model.h5'
+
+
+# In[18]:
+
+
+checkpoint_path = "results/AttentionModel-NN-wrting-generate/cp.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+
+# Create checkpoint callback
+cp_callback = ModelCheckpoint(checkpoint_path, save_weights_only=True,verbose=1)
+
+
+#model.fit(train_images, train_labels,  epochs = 10, 
+#          validation_data = (test_images,test_labels),
+#          callbacks = [cp_callback])  # pass callback to training
+
+
+# In[19]:
+if os.path.isfile(checkpoint_path) == True:
+	print('found pre-weights')
+	model.load_weights(checkpoint_path)
+else:
+	 print('no pre-trained weight found')
+model.fit([Xoh,C, s0, c0], outputs, validation_split=0.33,
+          epochs=20, batch_size=32,
+          callbacks=[cp_callback])
 
 
 # In[ ]:
