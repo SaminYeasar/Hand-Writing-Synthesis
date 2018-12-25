@@ -184,7 +184,7 @@ model.save_weights('mdn_stroke2stroke_epoch{}.h5'.format(EPOCHS))  # creates a H
 
 ################################################
 
-
+'''
 # In[17]:
 
 
@@ -413,4 +413,6 @@ sketch.shape
 plt.plot(sketch.T[1].cumsum(), -1 * sketch.T[2].cumsum())
 plt.title("Accumulated values for one training example")
 plt.show()
+'''
+
 
