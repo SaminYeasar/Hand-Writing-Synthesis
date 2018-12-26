@@ -342,15 +342,16 @@ callbacks_list = [checkpoint]
 # In[26]:
 
 
-EPOCHS = 10
+EPOCHS = 100
+print('training the model for number of epochs = {}'.format(EPOCHS))
 model.fit([input_strokes, s0, c0], outputs, epochs=EPOCHS, batch_size=32)
 print('training completed')
 
 
-# In[28]:
+# In[33]:
 
 
-print(EPOCHS)
+print('saving the model for {} number of epochs'.format(EPOCHS))
 model.save('AttentionModel-Stroke2Text_{}.hdf5'.format(EPOCHS))
 end = time.time()
 print(end - start)
@@ -371,7 +372,7 @@ print(end - start)
 # In[29]:
 
 
-model.load_weights('AttentionModel-Stroke2Text_{}.hdf5'.format(EPOCHS))
+#model.load_weights('AttentionModel-Stroke2Text_{}.hdf5'.format(EPOCHS))
 
 
 # In[32]:
