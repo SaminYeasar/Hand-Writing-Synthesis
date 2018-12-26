@@ -5,7 +5,7 @@
 
 
 import keras
-from context import * # imports the MDN layer 
+import mdn
 import numpy as np
 import random
 import matplotlib.pyplot as plt
