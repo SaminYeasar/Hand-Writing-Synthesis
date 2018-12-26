@@ -5,23 +5,23 @@
 
 
 import keras
-from context import * # imports the MDN layer 
+#from context import * # imports the MDN layer 
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D 
-get_ipython().run_line_magic('matplotlib', 'inline')
+#from mpl_toolkits.mplot3d import Axes3D 
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 # Only for GPU use:
 #import os
 #os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+#config = tf.ConfigProto()
+#config.gpu_options.allow_growth = True
+#sess = tf.Session(config=config)
 from keras import backend as K
-K.set_session(sess)
+#K.set_session(sess)
 
 
 # ### First download and process the dataset.
@@ -76,23 +76,23 @@ Yoh = output_strokes
 # In[7]:
 
 
-Xoh.shape
+#Xoh.shape
 
 
 # In[23]:
 
 
-plt.plot(Xoh[0].T[1], Xoh[0].T[2])
-plt.title("Raw values (diffs) for one training example")
-plt.show()
+#plt.plot(Xoh[0].T[1], Xoh[0].T[2])
+#plt.title("Raw values (diffs) for one training example")
+#plt.show()
 
 
 # In[25]:
 
 
-plt.plot(Xoh[0].T[1].cumsum(), -1 * Xoh[0].T[2].cumsum())
-plt.title("Accumulated values for one training example")
-plt.show()
+#plt.plot(Xoh[0].T[1].cumsum(), -1 * Xoh[0].T[2].cumsum())
+#plt.title("Accumulated values for one training example")
+#plt.show()
 
 
 # In[8]:
@@ -156,9 +156,9 @@ X, y = seq_to_singleton_format(slices)
 X = np.array(X)
 y = np.array(y)
 
-print("Number of training examples:")
-print("X:", X.shape)
-print("y:", y.shape)
+#print("Number of training examples:")
+#print("X:", X.shape)
+#print("y:", y.shape)
 
 
 # In[63]:
