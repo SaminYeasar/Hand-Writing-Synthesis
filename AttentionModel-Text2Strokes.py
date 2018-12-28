@@ -299,10 +299,6 @@ c0 = np.zeros((no_examples, n_s))
 outputs = list(output_strokes.swapaxes(0,1))
 
 
-# In[23]:
-
-
-outputs[0].shape
 
 
 # In[28]:
@@ -328,18 +324,17 @@ callbacks_list = [checkpoint]
 """
 
 
-# In[ ]:
+########################################################################################
+
+filepath="AttentionModel-Text2Stroke-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
+checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
+callbacks_list = [checkpoint]
 
 
-#filepath="AttentionModel-LSTM-NN-strok-gen-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
-#checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
-#callbacks_list = [checkpoint]
+epochs = 100
+model.fit([C, s0, c0], outputs, validation_split=0.33 ,monitor='val_loss', epochs = epochs, batch_size = 32,callbacks=callbacks_list)
+#model.fit([C, s0, c0], outputs, epochs=100, batch_size=32)
 
-
-# In[ ]:
-
-
-model.fit([C, s0, c0], outputs, epochs=100, batch_size=32)
 print('training completed')
 model.save('AttentionModel-Text2Stroke_{}.hdf5'.format(epochs))
 end = time.time()
