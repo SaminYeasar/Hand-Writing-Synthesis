@@ -1,17 +1,14 @@
-#!/usr/bin/env python
+
 # coding: utf-8
-
-# In[ ]:
-
-
-
-
 
 # In[1]:
 
 
+import time
+start = time.time()
+
 import keras
-#import mdn
+import mdn
 from keras.layers import Bidirectional, Concatenate, Permute, Dot, Input, LSTM, Multiply
 from keras.layers import RepeatVector, Dense, Activation, Lambda ,Dropout,BatchNormalization
 from keras.optimizers import Adam
@@ -28,6 +25,17 @@ import h5py
 # In[2]:
 
 
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+from keras import backend as K
+K.set_session(sess)
+
+
+# In[3]:
+
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -37,20 +45,20 @@ sys.path.insert(0,'..')
 from utils import plot_stroke
 
 
-# In[3]:
+# In[4]:
 
 
 strokes = np.load('strokes.npy',encoding='bytes')
 
 
-# In[4]:
+# In[5]:
 
 
 with open('sentences.txt') as f:
     texts = f.readlines()
 
 
-# In[5]:
+# In[6]:
 
 
 chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .#'  # for other char in texts
@@ -66,7 +74,7 @@ idx2char = {i:u for i, u in enumerate(unique)}
 num_char = len(char2idx)
 
 
-# In[6]:
+# In[7]:
 
 
 ########## gives the best representation so far
@@ -74,7 +82,7 @@ stroke_len = 300
 char_len = int(stroke_len/25)
 
 
-# In[7]:
+# In[8]:
 
 
 Ty = 300   #output data length
@@ -87,7 +95,7 @@ print("Output data length",Ty)
 print("Input data length",Tx)
 
 
-# In[8]:
+# In[9]:
 
 
 def check_char (char2idx,val):
@@ -123,7 +131,7 @@ def tranc_text(texts, char_len):
     return texts 
 
 
-# In[9]:
+# In[10]:
 
 
 texts = tranc_text(texts, char_len)
@@ -132,14 +140,14 @@ C = np.array(list(map(lambda x: to_categorical(x, num_classes=len(char2idx)), n_
 input_feat_size = C.shape[2]
 
 
-# In[10]:
+# In[11]:
 
 
 print("Input Data Shape",C.shape)
 print("Input feature shape",input_feat_size)
 
 
-# In[11]:
+# In[12]:
 
 
 def pad_stroke(stroke,Ty):
@@ -157,14 +165,14 @@ output_strokes = np.array(list(map(lambda x: tranc_stroke(x, Ty), strokes)))
 output_feat_size = output_strokes.shape[2]
 
 
-# In[12]:
+# In[13]:
 
 
 print("Output Data Shape",output_strokes.shape)
 print("Output feature shape",output_feat_size)
 
 
-# In[13]:
+# In[14]:
 
 
 def softmax(x, axis=1):
@@ -177,9 +185,21 @@ def softmax(x, axis=1):
         return e / s
 
 
-# In[14]:
+# In[15]:
 
 
+repeator = RepeatVector(Tx)
+concatenator = Concatenate(axis=-1)
+densor1 = Dense(10, activation = "tanh")
+densor2 = Dense(1, activation = "relu")
+activator = Activation(softmax, name='attention_weights') # We are using a custom softmax(axis = 1) loaded in this notebook
+dotor = Dot(axes = 1)
+
+
+# In[16]:
+
+
+"""
 # Defined shared layers as global variables
 repeator = RepeatVector(Tx)
 concatenator = Concatenate(axis=-1)
@@ -187,89 +207,85 @@ densor1 = Dense(10, kernel_initializer='random_uniform', activation = "tanh")
 densor2 = Dense(1, kernel_initializer='random_uniform' , activation = "tanh")
 activator = Activation(softmax, name='attention_weights')
 dotor = Dot(axes = 1)
-
-
-# In[15]:
-
-
-def one_step_attention(a, s_prev):
-    s_prev = repeator(s_prev)
-    concat = concatenator ([s_prev,a])
-    
-    e =  densor1(concat) 
-    e = BatchNormalization()(e)
-    
-    energies = densor2(e)
-    alphas = activator(energies)
-    context = dotor([alphas,a])
-    return context
-
-
-# In[16]:
-
-
-n_a = 128
-n_s = 256
-post_activation_LSTM_cell = LSTM(n_s,activation='tanh',recurrent_dropout=0.2,return_state = True)
-out_densor1 = Dense(100, kernel_initializer='random_uniform', activation = "tanh")
-out_densor2 = Dense(100, kernel_initializer='random_uniform' , activation = "tanh")
-out_densor3 = Dense(3, kernel_initializer='random_uniform' , activation = "tanh")
-output_layer = Dense(3)
+"""
 
 
 # In[17]:
 
 
-def model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size):
+def one_step_attention(a, s_prev):
+    s_prev = repeator(s_prev)           # s = (?,256) , a = (? , ? , 256), s_prev = (?,12,256)
+    concat = concatenator ([s_prev,a])  # shape = (?, 12, 512)
+    e =  densor1(concat)                # shape = (?, 12, 512)
+    #e = BatchNormalization()(e)
+    energies = densor2(e)               # shape = (?, 12, 1)
+    alphas = activator(energies)        # shape = (?, 12, 1)  alphas=weight. just softmax so that at time t all sum to 1
+    context = dotor([alphas,a])         # shape=(?, 1, 256)
+    return context
+
+
+# In[18]:
+
+
+n_a = 128
+n_s = 256
+output_dim = 3
+n_mix = 10
+"""
+post_activation_LSTM_cell = LSTM(n_s,activation='tanh',recurrent_dropout=0.2,return_state = True)
+out_densor1 = Dense(100, kernel_initializer='random_uniform', activation = "tanh")
+out_densor2 = Dense(100, kernel_initializer='random_uniform' , activation = "tanh")
+out_densor3 = Dense(3, kernel_initializer='random_uniform' , activation = "tanh")
+output_layer = Dense(3)
+"""
+post_activation_LSTM_cell = LSTM(n_s, return_state = True)
+mix_model = mdn.MDN(output_dim, n_mix)
+
+
+# In[19]:
+
+
+def Attention_Model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size):
     X = Input(shape=(Tx, input_feat_size))
     s0 = Input(shape=(n_s,), name='s0')
     c0 = Input(shape=(n_s,), name='c0')
     s = s0
     c = c0
     outputs = []
-    a = Bidirectional(LSTM(n_a,activation='tanh',recurrent_dropout=0.2,return_sequences=True),input_shape=(Tx, input_feat_size))(X)
+    #a = Bidirectional(LSTM(n_a,activation='tanh',recurrent_dropout=0.2,return_sequences=True),input_shape=(Tx, input_feat_size))(X)
+    a = Bidirectional(LSTM(n_a, return_sequences=True),input_shape=(Tx, input_feat_size))(X)
     for t in range(Ty):
         context = one_step_attention(a, s)
         s, _, c = post_activation_LSTM_cell(context,initial_state= [s, c])
-        
-        output_l1 =  out_densor1(s) 
-        output_l1 = BatchNormalization()(output_l1)
-        
-        output_l2 = out_densor2(output_l1) 
-        output_l2 = BatchNormalization()(output_l2)
-        
-        out = out_densor3(output_l2)
-        #out = output_layer(s)
+        out = mix_model(s)
         outputs.append(out)
     model = Model(inputs=[X,s0,c0], outputs=outputs)
     return model
 
 
-# In[18]:
+# In[20]:
 
 
-model = model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size)
+model = Attention_Model(Tx, Ty, n_a, n_s, input_feat_size, output_feat_size)
 
 
-# In[ ]:
-
-
-
-
-
-# In[19]:
+# In[25]:
 
 
 # All parameter gradients will be clipped to
 # a maximum value of 100 and
 # a minimum value of -100.
-opt = Adam(lr=0.005, decay=0.01, beta_1=0.9, beta_2=0.999,clipvalue=100)
-model.compile(optimizer=opt,
-              loss='mean_squared_error',
-              metrics=['accuracy'])
+
+#opt = Adam(lr=0.005, decay=0.01, beta_1=0.9, beta_2=0.999,clipvalue=100)
+#model.compile(optimizer=opt,
+#              loss='mean_squared_error',
+#              metrics=['accuracy'])
+#model.compile(loss=mdn.get_mixture_loss_func(output_dim, num_mixtures), optimizer=keras.optimizers.Adam())
+#model.compile(loss=mdn.get_mixture_loss_func(output_dim, n_mix), optimizer=opt)
+model.compile(loss=mdn.get_mixture_loss_func(output_dim, n_mix), optimizer=keras.optimizers.Adam())
 
 
-# In[ ]:
+# In[26]:
 
 
 model.summary()
@@ -278,17 +294,38 @@ model.summary()
 # In[20]:
 
 
-checkpoint_path = "AttentionModel-Text2Stroke.h5"
-if os.path.isfile(checkpoint_path) == True:
-    model.load_weights('AttentionModel-Text2Stroke.h5')
-
-
-# In[21]:
-
-
 s0 = np.zeros((no_examples, n_s))
 c0 = np.zeros((no_examples, n_s))
 outputs = list(output_strokes.swapaxes(0,1))
+
+
+# In[23]:
+
+
+outputs[0].shape
+
+
+# In[28]:
+
+
+"""
+checkpoint_path = "AttentionModel-Text2Stroke.hdf5"
+
+if os.path.isfile(checkpoint_path) == True:
+    model.load_weights('AttentionModel-Text2Stroke.hdf5')
+    print("Continuing from previously save model")
+else:
+    print("No saved model found")
+    
+# Keep only a single checkpoint, the best over test accuracy.
+checkpoint = ModelCheckpoint(checkpoint_path,
+                            monitor='val_acc',
+                            verbose=1,
+                            save_best_only=True,
+                            mode='max')
+
+callbacks_list = [checkpoint]
+"""
 
 
 # In[ ]:
@@ -304,11 +341,7 @@ outputs = list(output_strokes.swapaxes(0,1))
 
 model.fit([C, s0, c0], outputs, epochs=100, batch_size=32)
 print('training completed')
-model.save('AttentionModel-Text2Stroke.h5')
-
-
-# In[ ]:
-
-
-
+model.save('AttentionModel-Text2Stroke_{}.hdf5'.format(epochs))
+end = time.time()
+print(end - start)
 
