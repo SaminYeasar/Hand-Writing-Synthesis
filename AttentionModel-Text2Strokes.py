@@ -301,29 +301,6 @@ outputs = list(output_strokes.swapaxes(0,1))
 
 
 
-# In[28]:
-
-
-"""
-checkpoint_path = "AttentionModel-Text2Stroke.hdf5"
-
-if os.path.isfile(checkpoint_path) == True:
-    model.load_weights('AttentionModel-Text2Stroke.hdf5')
-    print("Continuing from previously save model")
-else:
-    print("No saved model found")
-    
-# Keep only a single checkpoint, the best over test accuracy.
-checkpoint = ModelCheckpoint(checkpoint_path,
-                            monitor='val_acc',
-                            verbose=1,
-                            save_best_only=True,
-                            mode='max')
-
-callbacks_list = [checkpoint]
-"""
-
-
 ########################################################################################
 
 filepath="AttentionModel-Text2Stroke-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
@@ -332,7 +309,7 @@ callbacks_list = [checkpoint]
 
 
 epochs = 100
-model.fit([C, s0, c0], outputs, validation_split=0.33 ,monitor='val_loss', epochs = epochs, batch_size = 32,callbacks=callbacks_list)
+model.fit([C, s0, c0], outputs, validation_split=0.33, epochs = epochs, batch_size = 32,callbacks=callbacks_list)
 #model.fit([C, s0, c0], outputs, epochs=100, batch_size=32)
 
 print('training completed')
