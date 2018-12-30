@@ -50,6 +50,18 @@ from utils import plot_stroke
 
 strokes = np.load('strokes.npy',encoding='bytes')
 
+def swap_stroke_axis(strokes):
+    input_data = []
+    for stroke in strokes:
+        a = stroke
+        b = a[:,0]
+        a = a[:,1:]
+        data = np.append(a,b.reshape(-1,1),axis=1).reshape(-1,3)
+        assert data.shape == (len(data),3)
+        input_data.append( data )
+    return input_data
+
+strokes = swap_stroke_axis(strokes)
 
 # In[5]:
 
@@ -301,19 +313,20 @@ outputs = list(output_strokes.swapaxes(0,1))
 
 
 
-########################################################################################
+# In[28]:
 
-filepath="AttentionModel-Text2Stroke-weights.{epoch:02d}-{val_loss:.2f}.hdf5"
-checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True, mode='max')
-callbacks_list = [checkpoint]
+
+
+
+########################################################################################
 
 
 epochs = 100
-model.fit([C, s0, c0], outputs, validation_split=0.33, epochs = epochs, batch_size = 32,callbacks=callbacks_list)
+model.fit([C, s0, c0], outputs, epochs = epochs, batch_size = 32,callbacks=callbacks_list)
 #model.fit([C, s0, c0], outputs, epochs=100, batch_size=32)
 
 print('training completed')
-model.save('AttentionModel-Text2Stroke_{}.hdf5'.format(epochs))
+model.save('AttentionModel-Text2Stroke_strokeswapped{}.hdf5'.format(epochs))
 end = time.time()
 print(end - start)
 
